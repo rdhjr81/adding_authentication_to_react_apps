@@ -18,39 +18,39 @@ const AuthForm = () => {
     const enteredPassword = passwordInputRef.current.value;
 
     setIsLoading(true);
-    let url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
-    if (isLogin) {
-      
-      url= `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
-    } 
-      fetch(
-        url,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email: enteredEmail,
-            password: enteredPassword, 
-            returnSecureToken: true
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      ).then(res => {
+    let url = `https://identitytoolkit.googleapis.com/v1/accounts:${isLogin ? 'signInWithPassword':'signUp'}?key=${process.env.REACT_APP_FIREBASE_API_KEY}`;
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        email: enteredEmail,
+        password: enteredPassword,
+        returnSecureToken: true,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
         setIsLoading(false);
-        if(res.ok){
-          
-        }else{
-          res.json().then(data => {
-            let errorMessage = 'Authentication failed';
-            if(data && data.error && data.error.message){
-              errorMessage = data.error.message;
-            }
-            alert(errorMessage);
+        if (res.ok) {
+          return res.json();
+        } else {
+          res.json().then((data) => {
+            let errorMessage = "Authentication failed";
+            // if(data && data.error && data.error.message){
+            //   errorMessage = data.error.message;
+            // }
+            throw new Error(errorMessage);
           });
         }
+      })
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((err) => {
+        alert(err.message);
       });
-    };
+  };
 
   return (
     <section className={classes.auth}>
@@ -70,7 +70,11 @@ const AuthForm = () => {
           />
         </div>
         <div className={classes.actions}>
-          {isLoading ? <p>Loading ...</p> : <button>{isLogin ? "Login" : "Create Account"}</button>}
+          {isLoading ? (
+            <p>Loading ...</p>
+          ) : (
+            <button>{isLogin ? "Login" : "Create Account"}</button>
+          )}
           <button
             type="button"
             className={classes.toggle}
